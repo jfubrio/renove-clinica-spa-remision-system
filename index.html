@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notas de Remisión RENOVÉ</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        
+        @media print {
+            .no-print { display: none !important; }
+            .print-only { display: block !important; }
+            body { font-size: 12px; }
+            .print-header { margin-bottom: 20px; }
+            .print-table { width: 100%; border-collapse: collapse; }
+            .print-table th, .print-table td { 
+                border: 1px solid #000; 
+                padding: 8px; 
+                text-align: left; 
+            }
+        }
+        
+        .hidden { display: none; }
+        .show { display: block; }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- Header -->
+    <header class="bg-white shadow-sm border-b">
+        <div class="max-w-7xl mx-auto px-4 py-6">
+            <h1 class="text-3xl font-bold text-gray-900 text-center">RENOVÉ CLÍNICA & SPA</h1>
+            <p class="text-center text-gray-600 mt-2">Sistema de Notas de Remisión</p>
+        </div>
+    </header>
+
+    <div class="max-w-7xl mx-auto px-4 py-8">
+        <!-- Dashboard del Día -->
+        <section class="bg-white rounded-lg shadow-sm p-6 mb-8 no-print">
+            <h2 class="text-2xl font-semibold text-gray-900 mb-6">Dashboard del Día</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+                <div class="bg-blue-50 p-4 rounded-lg">
+                    <h3 class="text-sm font-medium text-blue-600">Total Pacientes</h3>
+                    <p class="text-2xl font-bold text-blue-900" id="total-pacientes">0</p>
+                </div>
+                <div class="bg-green-50 p-4 rounded-lg">
+                    <h3 class="text-sm font-medium text-green-600">Total Promociones</h3>
+                    <p class="text-2xl font-bold text-green-900" id="total-promociones">$0</p>
+                </div>
+                <div class="bg-purple-50 p-4 rounded-lg">
+                    <h3 class="text-sm font-medium text-purple-600">Total Pagado</h3>
+                    <p class="text-2xl font-bold text-purple-900" id="total-pagado">$0</p>
+                </div>
+                <div class="bg-orange-50 p-4 rounded-lg">
+                    <h3 class="text-sm font-medium text-orange-600">Total Regular</h3>
+                    <p class="text-2xl font-bold text-orange-900" id="total-regular">$0</p>
+                </div>
+            </div>
+
+            <div class="flex gap-4">
+                <button id="btn-imprimir-todo" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                    Imprimir Todo (Cierre Diario)
+                </button>
+                <button id="btn-exportar-pdf" class="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition-colors">
+                    Exportar PDF
+                </button>
+                <button id="btn-limpiar-todo" class="bg-red-600 text-white px-6 py-2 rounded-lg hover:bg-red-700 transition-colors">
+                    Limpiar Todo
+                </button>
+            </div>
+        </section>
+
+        <!-- Formulario Agregar Paciente -->
+        <section class="bg-white rounded-lg shadow-sm p-6 mb-8 no-print">
+            <h2 class="text-2xl font-semibold text-gray-900 mb-6">Agregar Paciente</h2>
+            
+            <form id="form-paciente" class="space-y-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- Sucursal -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Sucursal *</label>
+                        <select id="sucursal" required class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            <option value="">Seleccionar sucursal</option>
+                            <option value="Saltillo">Saltillo</option>
+                            <option value="Monterrey">Monterrey</option>
+                            <option value="Monclova">Monclova</option>
+                        </select>
+                    </div>
+
+                    <!-- Cliente -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Cliente *</label>
+                        <input type="text" id="cliente" required class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Nombre completo">
+                    </div>
+
+                    <!-- Teléfono -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Teléfono *</label>
+                        <input type="tel" id="telefono" required class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="844-123-4567">
+                    </div>
+
+                    <!-- Tratamiento -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Tratamiento/Producto *</label>
+                        <select id="tratamiento" required class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            <option value="">Seleccionar tratamiento</option>
+                        </select>
+                    </div>
+
+                    <!-- Costo Regular -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Costo Regular</label>
+                        <input type="number" id="costo-regular" min="0" step="0.01" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="0.00">
+                    </div>
+
+                    <!-- Promoción -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Promoción</label>
+                        <input type="number" id="promocion" min="0" step="0.01" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="0.00">
+                    </div>
+
+                    <!-- Pago Realizado -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Pago Realizado</label>
+                        <input type="number" id="pago-realizado" min="0" step="0.01" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="0.00">
+                    </div>
+
+                    <!-- Método de Pago -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Método de Pago</label>
+                        <select id="metodo-pago" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            <option value="efectivo">Efectivo</option>
+                            <option value="tarjeta">Tarjeta</option>
+                            <option value="mixto">Mixto</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Campos para Pago Mixto -->
+                <div id="pago-mixto-fields" class="hidden">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Efectivo</label>
+                            <input type="number" id="efectivo-amount" min="0" step="0.01" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="0.00">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Tarjeta</label>
+                            <input type="number" id="tarjeta-amount" min="0" step="0.01" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="0.00">
+                        </div>
+                    </div>
+                    <div id="mixto-error" class="hidden text-red-600 text-sm mt-2">
+                        La suma de efectivo y tarjeta debe ser igual al pago realizado
+                    </div>
+                </div>
+
+                <!-- Observaciones -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Observaciones</label>
+                    <textarea id="observaciones" rows="3" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Comentarios adicionales..."></textarea>
+                </div>
+
+                <!-- Error Messages -->
+                <div id="form-errors" class="hidden bg-red-50 border border-red-200 rounded-lg p-4">
+                    <ul id="error-list" class="text-red-600 text-sm space-y-1"></ul>
+                </div>
+
+                <!-- Submit Button -->
+                <div>
+                    <button type="submit" class="bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium">
+                        Guardar Paciente
+                    </button>
+                </div>
+            </form>
+        </section>
+
+        <!-- Listado Pacientes de Hoy -->
+        <section class="bg-white rounded-lg shadow-sm p-6 no-print">
+            <h2 class="text-2xl font-semibold text-gray-900 mb-6">Pacientes de Hoy</h2>
+            <div id="pacientes-list" class="space-y-4">
+                <!-- Patient cards will be inserted here -->
+            </div>
+        </section>
+    </div>
+
+    <!-- Modal para Tratamiento Personalizado -->
+    <div id="modal-personalizado" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Agregar Tratamiento Personalizado</h3>
+            
+            <form id="form-personalizado" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Nombre del Tratamiento</label>
+                    <input type="text" id="nombre-personalizado" required class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Precio Regular</label>
+                    <input type="number" id="precio-regular-personalizado" min="0" step="0.01" required class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Promoción</label>
+                    <input type="number" id="promocion-personalizado" min="0" step="0.01" required class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                
+                <div class="flex gap-4 pt-4">
+                    <button type="submit" class="flex-1 bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                        Guardar
+                    </button>
+                    <button type="button" id="btn-cancelar-personalizado" class="flex-1 bg-gray-300 text-gray-700 py-2 rounded-lg hover:bg-gray-400 transition-colors">
+                        Cancelar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Print Area for Individual Receipt -->
+    <div id="print-individual" class="hidden print-only">
+        <!-- Individual receipt content will be inserted here -->
+    </div>
+
+    <!-- Print Area for Daily Report -->
+    <div id="print-global" class="hidden print-only">
+        <!-- Daily report content will be inserted here -->
+    </div>
+
+    <!-- Scripts -->
+    <script src="storage.js"></script>
+    <script src="catalog.js"></script>
+    <script src="pdf.js"></script>
+    <script src="main.js"></script>
+</body>
+</html>
